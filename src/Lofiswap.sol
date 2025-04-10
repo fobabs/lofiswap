@@ -6,7 +6,6 @@ import {LofiToken} from "./LofiToken.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-
 /// @title Lofiswap
 /// @author FOBABS
 /// @notice A decentralized exchange (DEX) that allows users to swap between ETH and LofiToken.
@@ -102,15 +101,13 @@ contract Lofiswap is Ownable {
 
     /// @notice Removes liquidity from the pool
     /// @param _lofiAmount Amount of LofiToken tokens to remove
-    /// @return ethAmount 
-    /// @return tokenAmount 
-    function removeLiquidity(uint256 _lofiAmount) 
-        external   
-        returns (uint256 ethAmount, uint256 tokenAmount) 
-    {
+    /// @return ethAmount
+    /// @return tokenAmount
+    function removeLiquidity(uint256 _lofiAmount) external returns (uint256 ethAmount, uint256 tokenAmount) {
         if (_lofiAmount == 0) revert Lofiswap__MustSendTokens();
-        if (_lofiAmount > i_lofiToken.balanceOf(msg.sender)) 
+        if (_lofiAmount > i_lofiToken.balanceOf(msg.sender)) {
             revert Lofiswap__InsufficientTokenAmount();
+        }
 
         uint256 totalSupply = i_lofiToken.totalSupply();
         ethAmount = (_lofiAmount * s_ethReserve) / totalSupply;
@@ -125,7 +122,7 @@ contract Lofiswap is Ownable {
         // Send Tokens and ETH to caller
         i_token.safeTransfer(msg.sender, tokenAmount);
 
-        (bool sent, ) = payable(msg.sender).call{value: ethAmount}("");
+        (bool sent,) = payable(msg.sender).call{value: ethAmount}("");
         if (!sent) revert Lofiswap__ETHTransferFailed();
 
         emit LiquidityRemoved(msg.sender, ethAmount, tokenAmount);
@@ -135,11 +132,7 @@ contract Lofiswap is Ownable {
     /// @notice Swaps ETH for LofiToken
     /// @param _minTokensOut Minimum amount of tokens to receive
     /// @return tokenAmount
-    function swapETHForToken(uint256 _minTokensOut) 
-        external 
-        payable 
-        returns (uint256 tokenAmount) 
-    {
+    function swapETHForToken(uint256 _minTokensOut) external payable returns (uint256 tokenAmount) {
         if (msg.value == 0) revert Lofiswap__MustSendETH();
 
         uint256 ethIn = msg.value;
@@ -161,10 +154,7 @@ contract Lofiswap is Ownable {
     /// @param _tokenAmount Amount of tokens to swap
     /// @param _minETHOut Minimum amount of ETH to receive
     /// @return ethAmount
-    function swapTokenForETH(
-        uint256 _tokenAmount, 
-        uint256 _minETHOut
-    ) external returns (uint256 ethAmount) {
+    function swapTokenForETH(uint256 _tokenAmount, uint256 _minETHOut) external returns (uint256 ethAmount) {
         if (_tokenAmount == 0) revert Lofiswap__MustSendTokens();
 
         ethAmount = getOutputAmount(_tokenAmount, s_tokenReserve, s_ethReserve);
@@ -177,7 +167,7 @@ contract Lofiswap is Ownable {
         i_token.safeTransferFrom(msg.sender, address(this), _tokenAmount);
 
         // Send ETH to the caller
-        (bool sent, ) = payable(msg.sender).call{value: ethAmount}("");
+        (bool sent,) = payable(msg.sender).call{value: ethAmount}("");
         if (!sent) revert Lofiswap__ETHTransferFailed();
 
         emit SwapTokenForETH(msg.sender, _tokenAmount, ethAmount);
@@ -186,7 +176,7 @@ contract Lofiswap is Ownable {
 
     function withdrawETHFees() external onlyOwner {
         uint256 ethFees = address(this).balance;
-        (bool sent, ) = payable(owner()).call{value: ethFees}("");
+        (bool sent,) = payable(owner()).call{value: ethFees}("");
         if (!sent) revert Lofiswap__ETHTransferFailed();
 
         emit ETHFeesWithdrawn(owner(), ethFees);
@@ -207,11 +197,11 @@ contract Lofiswap is Ownable {
     /// @param inputReserve The reserve amount of the input token.
     /// @param outputReserve The reserve amount of the output token.
     /// @return The calculated output amount of the output token.
-    function getOutputAmount(
-        uint256 inputAmount, 
-        uint256 inputReserve, 
-        uint256 outputReserve
-    ) private pure returns (uint256) {
+    function getOutputAmount(uint256 inputAmount, uint256 inputReserve, uint256 outputReserve)
+        private
+        pure
+        returns (uint256)
+    {
         uint256 inputAmountWithFee = inputAmount * (FEE_DENOMINATOR - FEE_NUMERATOR);
         uint256 numerator = inputAmountWithFee * outputReserve;
         uint256 denominator = (inputReserve * FEE_DENOMINATOR) + inputAmountWithFee;
@@ -222,13 +212,9 @@ contract Lofiswap is Ownable {
     //         External View Function
     //////////////////////////////////////////*/
     /// @notice Get pool reserves
-    /// @return _s_ethReserve 
-    /// @return _s_tokenReserve 
-    function getReserves() 
-        external 
-        view 
-        returns (uint256 _s_ethReserve, uint256 _s_tokenReserve) 
-    {
+    /// @return _s_ethReserve
+    /// @return _s_tokenReserve
+    function getReserves() external view returns (uint256 _s_ethReserve, uint256 _s_tokenReserve) {
         return (s_ethReserve, s_tokenReserve);
     }
 }

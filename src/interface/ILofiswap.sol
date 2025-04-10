@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-
 /// @title ILofiswap
 /// @author FOBABS
 /// @dev An interface of the Lofiswap contract

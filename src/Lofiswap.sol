@@ -27,7 +27,7 @@ contract Lofiswap is Ownable {
     // Token contract instance
     IERC20 private immutable i_token;
     // LofiToken contract instance
-    LofiToken private immutable i_lofiToken;
+    LofiToken public immutable i_lofiToken;
 
     // Pool reserves
     uint256 private s_ethReserve;

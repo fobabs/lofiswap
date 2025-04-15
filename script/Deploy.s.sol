@@ -6,13 +6,13 @@ import {Lofiswap} from "../src/Lofiswap.sol";
 import {HelperConfig} from "./HelperConfig.s.sol";
 
 contract DeployScript is Script {
-    function run() external returns (Lofiswap) {
+    function run() external returns (Lofiswap, HelperConfig) {
         HelperConfig helperConfig = new HelperConfig();
         address tokenAddress = helperConfig.erc20TokenAddress();
 
         vm.startBroadcast();
         Lofiswap lofiswap = new Lofiswap(tokenAddress);
         vm.stopBroadcast();
-        return lofiswap;
+        return (lofiswap, helperConfig);
     }
 }

@@ -71,8 +71,6 @@ contract Lofiswap is Ownable {
 
         if (s_ethReserve == 0 && s_tokenReserve == 0) {
             // Initial liquidity
-            s_ethReserve = ethAmount;
-            s_tokenReserve = _tokenAmount;
             lofiAmount = ethAmount; // Initial LofiToken tokens = ETH amount
         } else {
             // Maintain ratio

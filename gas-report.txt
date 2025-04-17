@@ -1,0 +1,33 @@
+Compiling 1 files with Solc 0.8.26
+Solc 0.8.26 finished in 1.64s
+Compiler run successful!
+
+Ran 6 tests for test/unit/LofiswapTest.t.sol:LofiswapTest
+[PASS] testAddInitialLiquidity() (gas: 232806)
+[PASS] testAddLiquidityInsufficientTokens() (gas: 311766)
+[PASS] testAddLiquidityMaintainRatio() (gas: 374511)
+[PASS] testAddLiquidityZeroETH() (gas: 86858)
+[PASS] testAddLiquidityZeroTokens() (gas: 40993)
+[PASS] testConstructorInvalidTokenAddress() (gas: 291083)
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 75.60ms (143.56ms CPU time)
+
+╭------------------------------------+-----------------+-------+--------+--------+---------╮
+| src/Lofiswap.sol:Lofiswap Contract |                 |       |        |        |         |
++==========================================================================================+
+| Deployment Cost                    | Deployment Size |       |        |        |         |
+|------------------------------------+-----------------+-------+--------+--------+---------|
+| 0                                  | 11927           |       |        |        |         |
+|------------------------------------+-----------------+-------+--------+--------+---------|
+|                                    |                 |       |        |        |         |
+|------------------------------------+-----------------+-------+--------+--------+---------|
+| Function Name                      | Min             | Avg   | Median | Max    | # Calls |
+|------------------------------------+-----------------+-------+--------+--------+---------|
+| addLiquidity                       | 21737           | 81434 | 88047  | 137272 | 7       |
+|------------------------------------+-----------------+-------+--------+--------+---------|
+| getReserves                        | 646             | 646   | 646    | 646    | 2       |
+|------------------------------------+-----------------+-------+--------+--------+---------|
+| i_lofiToken                        | 591             | 591   | 591    | 591    | 6       |
+╰------------------------------------+-----------------+-------+--------+--------+---------╯
+
+
+Ran 1 test suite in 81.07ms (75.60ms CPU time): 6 tests passed, 0 failed, 0 skipped (6 total tests)

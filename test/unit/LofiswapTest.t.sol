@@ -14,6 +14,8 @@ contract LofiswapTest is Test {
 
     ERC20Mock public erc20Token;
 
+    uint256 private lofiAmount;
+
     address public ALICE = makeAddr("alice");
     address public BOB = makeAddr("bob");
 
@@ -24,6 +26,16 @@ contract LofiswapTest is Test {
 
     uint256 public constant INITIAL_ETH_AMOUNT = 20 ether;
     uint256 public constant INITIAL_TOKEN_AMOUNT = 100 ether;
+
+    modifier addLiquidity(uint256 _ethAmount, uint256 _tokenAmount) {
+        // Arrange
+        vm.startPrank(ALICE);
+        // Act
+        erc20Token.approve(address(lofiswap), _tokenAmount);
+        lofiAmount = lofiswap.addLiquidity{value: _ethAmount}(_tokenAmount);
+        vm.stopPrank();
+        _;
+    }
 
     function setUp() public {
         DeployScript deployer = new DeployScript();
@@ -51,14 +63,7 @@ contract LofiswapTest is Test {
         new Lofiswap(address(0));
     }
 
-    function testAddInitialLiquidity() public {
-        // Arrange
-        vm.startPrank(ALICE);
-        // Act
-        erc20Token.approve(address(lofiswap), INITIAL_TOKEN_AMOUNT);
-        uint256 lofiAmount = lofiswap.addLiquidity{value: INITIAL_ETH_AMOUNT}(INITIAL_TOKEN_AMOUNT);
-        vm.stopPrank();
-
+    function testAddInitialLiquidity() public addLiquidity(INITIAL_ETH_AMOUNT, INITIAL_TOKEN_AMOUNT) {
         (uint256 ethReserve, uint256 tokenReserve) = lofiswap.getReserves();
         // Assert
         assertEq(ethReserve, INITIAL_ETH_AMOUNT);
@@ -86,21 +91,14 @@ contract LofiswapTest is Test {
         vm.stopPrank();
     }
 
-    function testAddLiquidityMaintainRatio() public {
-        // Arrange
-        vm.startPrank(ALICE);
-        // Act
-        erc20Token.approve(address(lofiswap), INITIAL_TOKEN_AMOUNT);
-        lofiswap.addLiquidity{value: INITIAL_ETH_AMOUNT}(INITIAL_TOKEN_AMOUNT);
-        vm.stopPrank();
-
+    function testAddLiquidityMaintainRatio() public addLiquidity(INITIAL_ETH_AMOUNT, INITIAL_TOKEN_AMOUNT) {
         // Add more liquidity
         uint256 additionalEth = 8 ether;
         uint256 expectedToken = (additionalEth * INITIAL_TOKEN_AMOUNT) / INITIAL_ETH_AMOUNT;
 
         vm.startPrank(BOB);
         erc20Token.approve(address(lofiswap), expectedToken);
-        uint256 lofiAmount = lofiswap.addLiquidity{value: additionalEth}(expectedToken);
+        uint256 newLofiAmount = lofiswap.addLiquidity{value: additionalEth}(expectedToken);
         (uint256 ethReserve, uint256 tokenReserve) = lofiswap.getReserves();
         vm.stopPrank();
         uint256 totalSupply = lofiToken.totalSupply();
@@ -108,6 +106,39 @@ contract LofiswapTest is Test {
         // Assert
         assertEq(ethReserve, INITIAL_ETH_AMOUNT + additionalEth);
         assertEq(tokenReserve, INITIAL_TOKEN_AMOUNT + expectedToken);
-        assertEq(lofiAmount, expectedLofiAmount);
+        assertEq(newLofiAmount, expectedLofiAmount);
+    }
+
+    function testAddLiquidityInsufficientTokens() public addLiquidity(INITIAL_ETH_AMOUNT, INITIAL_TOKEN_AMOUNT) {
+        // Arrange
+        vm.startPrank(BOB);
+        // Act/Assert
+        uint256 tokenAmount = INITIAL_TOKEN_AMOUNT / 2;
+        erc20Token.approve(address(lofiswap), tokenAmount);
+        vm.expectRevert(Lofiswap.Lofiswap__InsufficientTokenAmount.selector);
+        lofiswap.addLiquidity{value: INITIAL_ETH_AMOUNT}(tokenAmount);
+        vm.stopPrank();
+    }
+
+    function testRemoveLiquidity() public addLiquidity(INITIAL_ETH_AMOUNT, INITIAL_TOKEN_AMOUNT) {
+        vm.startPrank(ALICE);
+        // Act
+        lofiToken.approve(address(lofiswap), lofiAmount);
+
+        uint256 initalETHBalance = ALICE.balance;
+        uint256 initialTokenBalance = erc20Token.balanceOf(ALICE);
+
+        (uint256 ethAmount, uint256 tokenAmount) = lofiswap.removeLiquidity(lofiAmount);
+        vm.stopPrank();
+        (uint256 ethReserve, uint256 tokenReserve) = lofiswap.getReserves();
+        
+        // Assert
+        assertEq(ethAmount, INITIAL_ETH_AMOUNT);
+        assertEq(tokenAmount, INITIAL_TOKEN_AMOUNT);
+        assertEq(lofiToken.balanceOf(ALICE), 0);
+        assertEq(ALICE.balance, initalETHBalance + ethAmount);
+        assertEq(erc20Token.balanceOf(ALICE), initialTokenBalance + tokenAmount);
+        assertEq(ethReserve, 0);
+        assertEq(tokenReserve, 0);
     }
 }

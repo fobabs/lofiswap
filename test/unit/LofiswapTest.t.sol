@@ -131,7 +131,7 @@ contract LofiswapTest is Test {
         (uint256 ethAmount, uint256 tokenAmount) = lofiswap.removeLiquidity(lofiAmount);
         vm.stopPrank();
         (uint256 ethReserve, uint256 tokenReserve) = lofiswap.getReserves();
-        
+
         // Assert
         assertEq(ethAmount, INITIAL_ETH_AMOUNT);
         assertEq(tokenAmount, INITIAL_TOKEN_AMOUNT);

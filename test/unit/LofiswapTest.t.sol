@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {Test} from "forge-std/Test.sol";
+import {Test, console2} from "forge-std/Test.sol";
 import {DeployScript, HelperConfig} from "../../script/Deploy.s.sol";
 import {Lofiswap} from "../../src/Lofiswap.sol";
 import {LofiToken} from "../../src/LofiToken.sol";
@@ -140,5 +140,66 @@ contract LofiswapTest is Test {
         assertEq(erc20Token.balanceOf(ALICE), initialTokenBalance + tokenAmount);
         assertEq(ethReserve, 0);
         assertEq(tokenReserve, 0);
+    }
+
+    function testRemoveLiquidityZeroAmount() public {
+        // Arrange
+        vm.startPrank(ALICE);
+        // Act/Assert
+        lofiToken.approve(address(lofiswap), 0);
+        vm.expectRevert(Lofiswap.Lofiswap__MustSendTokens.selector);
+        lofiswap.removeLiquidity(0);
+        vm.stopPrank();
+    }
+
+    function testSwapETHForToken() public addLiquidity(INITIAL_ETH_AMOUNT, INITIAL_TOKEN_AMOUNT) {
+        // Arrange
+        vm.startPrank(BOB);
+        uint256 ethToSwap = 1 ether;
+        uint256 initialTokenBalance = erc20Token.balanceOf(BOB);
+        // Act
+        uint256 tokenAmount = lofiswap.swapETHForToken{value: ethToSwap}(0);
+        vm.stopPrank();
+
+        (uint256 ethReserve, uint256 tokenReserve) = lofiswap.getReserves();
+        // Assert
+        assert(tokenAmount > 0);
+        assertEq(erc20Token.balanceOf(BOB), initialTokenBalance + tokenAmount);
+        assertEq(ethReserve, INITIAL_ETH_AMOUNT + ethToSwap);
+        assertEq(tokenReserve, INITIAL_TOKEN_AMOUNT - tokenAmount);
+    }
+
+    function testSwapTokenForETH() public addLiquidity(INITIAL_ETH_AMOUNT, INITIAL_TOKEN_AMOUNT) {
+        // Arrange
+        vm.startPrank(BOB);
+        uint256 tokenToSwap = 1 ether;
+        uint256 initialETHBalance = BOB.balance;
+        // Act
+        erc20Token.approve(address(lofiswap), tokenToSwap);
+        uint256 ethAmount = lofiswap.swapTokenForETH(tokenToSwap, 0);
+        vm.stopPrank();
+
+        (uint256 ethReserve, uint256 tokenReserve) = lofiswap.getReserves();
+        // Assert
+        assert(ethAmount > 0);
+        assertEq(BOB.balance, initialETHBalance + ethAmount);
+        assertEq(ethReserve, INITIAL_ETH_AMOUNT - ethAmount);
+        assertEq(tokenReserve, INITIAL_TOKEN_AMOUNT + tokenToSwap);
+    }
+
+    function testWithdrawETHFees() public addLiquidity(INITIAL_ETH_AMOUNT, INITIAL_TOKEN_AMOUNT) {
+        // Arrange
+        vm.startPrank(BOB);
+        lofiswap.swapETHForToken{value: 1 ether}(0);
+        vm.stopPrank();
+        address owner = lofiswap.owner();
+        uint256 initialOwnerBalance = owner.balance;
+        uint256 contractBalance = address(lofiswap).balance;
+        // Act
+        vm.prank(owner);
+        lofiswap.withdrawETHFees();
+        // Assert
+        assertEq(address(lofiswap).balance, 0);
+        assertEq(owner.balance, initialOwnerBalance + contractBalance);
     }
 }

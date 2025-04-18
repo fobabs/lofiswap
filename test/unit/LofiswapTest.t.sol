@@ -16,8 +16,8 @@ contract LofiswapTest is Test {
 
     uint256 private lofiAmount;
 
-    address public ALICE = makeAddr("alice");
-    address public BOB = makeAddr("bob");
+    address public alice = makeAddr("alice");
+    address public bob = makeAddr("bob");
 
     uint256 public constant TOKEN_TOTAL_SUPPLY = 100_000_000 ether;
 
@@ -29,7 +29,7 @@ contract LofiswapTest is Test {
 
     modifier addLiquidity(uint256 _ethAmount, uint256 _tokenAmount) {
         // Arrange
-        vm.startPrank(ALICE);
+        vm.startPrank(alice);
         // Act
         erc20Token.approve(address(lofiswap), _tokenAmount);
         lofiAmount = lofiswap.addLiquidity{value: _ethAmount}(_tokenAmount);
@@ -48,13 +48,13 @@ contract LofiswapTest is Test {
         lofiToken = lofiswap.i_lofiToken();
 
         // Funds users with ETH
-        vm.deal(ALICE, USER_STARTING_BALANCE);
-        vm.deal(BOB, USER_STARTING_BALANCE);
+        vm.deal(alice, USER_STARTING_BALANCE);
+        vm.deal(bob, USER_STARTING_BALANCE);
 
         // Fund users with USDC Tokens
         vm.startPrank(address(lofiswap));
-        erc20Token.transfer(ALICE, USER_TOKEN_AMOUNT);
-        erc20Token.transfer(BOB, USER_TOKEN_AMOUNT);
+        erc20Token.transfer(alice, USER_TOKEN_AMOUNT);
+        erc20Token.transfer(bob, USER_TOKEN_AMOUNT);
         vm.stopPrank();
     }
 
@@ -69,12 +69,12 @@ contract LofiswapTest is Test {
         assertEq(ethReserve, INITIAL_ETH_AMOUNT);
         assertEq(tokenReserve, INITIAL_TOKEN_AMOUNT);
         assertEq(lofiAmount, INITIAL_ETH_AMOUNT);
-        assertEq(lofiToken.balanceOf(ALICE), INITIAL_ETH_AMOUNT);
+        assertEq(lofiToken.balanceOf(alice), INITIAL_ETH_AMOUNT);
     }
 
     function testAddLiquidityZeroETH() public {
         // Arrange
-        vm.startPrank(ALICE);
+        vm.startPrank(alice);
         // Act/Assert
         erc20Token.approve(address(lofiswap), INITIAL_TOKEN_AMOUNT);
         vm.expectRevert(Lofiswap.Lofiswap__MustSendETH.selector);
@@ -84,7 +84,7 @@ contract LofiswapTest is Test {
 
     function testAddLiquidityZeroTokens() public {
         // Arrange
-        vm.startPrank(ALICE);
+        vm.startPrank(alice);
         // Act/Assert
         vm.expectRevert(Lofiswap.Lofiswap__MustSendTokens.selector);
         lofiswap.addLiquidity{value: INITIAL_ETH_AMOUNT}(0);
@@ -96,7 +96,7 @@ contract LofiswapTest is Test {
         uint256 additionalEth = 8 ether;
         uint256 expectedToken = (additionalEth * INITIAL_TOKEN_AMOUNT) / INITIAL_ETH_AMOUNT;
 
-        vm.startPrank(BOB);
+        vm.startPrank(bob);
         erc20Token.approve(address(lofiswap), expectedToken);
         uint256 newLofiAmount = lofiswap.addLiquidity{value: additionalEth}(expectedToken);
         (uint256 ethReserve, uint256 tokenReserve) = lofiswap.getReserves();
@@ -111,7 +111,7 @@ contract LofiswapTest is Test {
 
     function testAddLiquidityInsufficientTokens() public addLiquidity(INITIAL_ETH_AMOUNT, INITIAL_TOKEN_AMOUNT) {
         // Arrange
-        vm.startPrank(BOB);
+        vm.startPrank(bob);
         // Act/Assert
         uint256 tokenAmount = INITIAL_TOKEN_AMOUNT / 2;
         erc20Token.approve(address(lofiswap), tokenAmount);
@@ -121,12 +121,12 @@ contract LofiswapTest is Test {
     }
 
     function testRemoveLiquidity() public addLiquidity(INITIAL_ETH_AMOUNT, INITIAL_TOKEN_AMOUNT) {
-        vm.startPrank(ALICE);
+        vm.startPrank(alice);
         // Act
         lofiToken.approve(address(lofiswap), lofiAmount);
 
-        uint256 initalETHBalance = ALICE.balance;
-        uint256 initialTokenBalance = erc20Token.balanceOf(ALICE);
+        uint256 initalETHBalance = alice.balance;
+        uint256 initialTokenBalance = erc20Token.balanceOf(alice);
 
         (uint256 ethAmount, uint256 tokenAmount) = lofiswap.removeLiquidity(lofiAmount);
         vm.stopPrank();
@@ -135,16 +135,16 @@ contract LofiswapTest is Test {
         // Assert
         assertEq(ethAmount, INITIAL_ETH_AMOUNT);
         assertEq(tokenAmount, INITIAL_TOKEN_AMOUNT);
-        assertEq(lofiToken.balanceOf(ALICE), 0);
-        assertEq(ALICE.balance, initalETHBalance + ethAmount);
-        assertEq(erc20Token.balanceOf(ALICE), initialTokenBalance + tokenAmount);
+        assertEq(lofiToken.balanceOf(alice), 0);
+        assertEq(alice.balance, initalETHBalance + ethAmount);
+        assertEq(erc20Token.balanceOf(alice), initialTokenBalance + tokenAmount);
         assertEq(ethReserve, 0);
         assertEq(tokenReserve, 0);
     }
 
     function testRemoveLiquidityZeroAmount() public {
         // Arrange
-        vm.startPrank(ALICE);
+        vm.startPrank(alice);
         // Act/Assert
         lofiToken.approve(address(lofiswap), 0);
         vm.expectRevert(Lofiswap.Lofiswap__MustSendTokens.selector);
@@ -154,9 +154,9 @@ contract LofiswapTest is Test {
 
     function testSwapETHForToken() public addLiquidity(INITIAL_ETH_AMOUNT, INITIAL_TOKEN_AMOUNT) {
         // Arrange
-        vm.startPrank(BOB);
+        vm.startPrank(bob);
         uint256 ethToSwap = 1 ether;
-        uint256 initialTokenBalance = erc20Token.balanceOf(BOB);
+        uint256 initialTokenBalance = erc20Token.balanceOf(bob);
         // Act
         uint256 tokenAmount = lofiswap.swapETHForToken{value: ethToSwap}(0);
         vm.stopPrank();
@@ -164,16 +164,16 @@ contract LofiswapTest is Test {
         (uint256 ethReserve, uint256 tokenReserve) = lofiswap.getReserves();
         // Assert
         assert(tokenAmount > 0);
-        assertEq(erc20Token.balanceOf(BOB), initialTokenBalance + tokenAmount);
+        assertEq(erc20Token.balanceOf(bob), initialTokenBalance + tokenAmount);
         assertEq(ethReserve, INITIAL_ETH_AMOUNT + ethToSwap);
         assertEq(tokenReserve, INITIAL_TOKEN_AMOUNT - tokenAmount);
     }
 
     function testSwapTokenForETH() public addLiquidity(INITIAL_ETH_AMOUNT, INITIAL_TOKEN_AMOUNT) {
         // Arrange
-        vm.startPrank(BOB);
+        vm.startPrank(bob);
         uint256 tokenToSwap = 1 ether;
-        uint256 initialETHBalance = BOB.balance;
+        uint256 initialETHBalance = bob.balance;
         // Act
         erc20Token.approve(address(lofiswap), tokenToSwap);
         uint256 ethAmount = lofiswap.swapTokenForETH(tokenToSwap, 0);
@@ -182,17 +182,17 @@ contract LofiswapTest is Test {
         (uint256 ethReserve, uint256 tokenReserve) = lofiswap.getReserves();
         // Assert
         assert(ethAmount > 0);
-        assertEq(BOB.balance, initialETHBalance + ethAmount);
+        assertEq(bob.balance, initialETHBalance + ethAmount);
         assertEq(ethReserve, INITIAL_ETH_AMOUNT - ethAmount);
         assertEq(tokenReserve, INITIAL_TOKEN_AMOUNT + tokenToSwap);
     }
 
     function testWithdrawETHFees() public addLiquidity(INITIAL_ETH_AMOUNT, INITIAL_TOKEN_AMOUNT) {
         // Arrange
-        vm.startPrank(BOB);
+        vm.startPrank(bob);
         lofiswap.swapETHForToken{value: 1 ether}(0);
         vm.stopPrank();
-        address owner = lofiswap.owner();
+        address owner = msg.sender;
         uint256 initialOwnerBalance = owner.balance;
         uint256 contractBalance = address(lofiswap).balance;
         // Act

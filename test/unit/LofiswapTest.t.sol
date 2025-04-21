@@ -202,4 +202,22 @@ contract LofiswapTest is Test {
         assertEq(address(lofiswap).balance, 0);
         assertEq(owner.balance, initialOwnerBalance + contractBalance);
     }
+
+    function testWithdrawTokenFees() public addLiquidity(INITIAL_ETH_AMOUNT, INITIAL_TOKEN_AMOUNT) {
+        // Arrange
+        vm.startPrank(bob);
+        uint256 tokenIn = 10 ether;
+        erc20Token.approve(address(lofiswap), tokenIn);
+        lofiswap.swapTokenForETH(tokenIn, 0);
+        vm.stopPrank();
+        address owner = msg.sender;
+        uint256 initialOwnerTokenBalance = erc20Token.balanceOf(owner);
+        uint256 contractTokenBalance = erc20Token.balanceOf(address(lofiswap));
+        // Act
+        vm.prank(owner);
+        lofiswap.withdrawTokenFees();
+        // Assert
+        assertEq(erc20Token.balanceOf(address(lofiswap)), 0);
+        assertEq(erc20Token.balanceOf(owner), initialOwnerTokenBalance + contractTokenBalance);
+    }
 }

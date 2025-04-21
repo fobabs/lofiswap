@@ -103,9 +103,7 @@ contract Lofiswap is Ownable {
     /// @return tokenAmount
     function removeLiquidity(uint256 _lofiAmount) external returns (uint256 ethAmount, uint256 tokenAmount) {
         if (_lofiAmount == 0) revert Lofiswap__MustSendTokens();
-        if (_lofiAmount > i_lofiToken.balanceOf(msg.sender)) {
-            revert Lofiswap__InsufficientTokenAmount();
-        }
+        if (_lofiAmount > i_lofiToken.balanceOf(msg.sender)) revert Lofiswap__InsufficientTokenAmount();
 
         uint256 totalSupply = i_lofiToken.totalSupply();
         ethAmount = (_lofiAmount * s_ethReserve) / totalSupply;
@@ -135,7 +133,7 @@ contract Lofiswap is Ownable {
 
         uint256 ethIn = msg.value;
 
-        tokenAmount = getOutputAmount(ethIn, s_ethReserve, s_tokenReserve);
+        tokenAmount = _getOutputAmount(ethIn, s_ethReserve, s_tokenReserve);
         if (tokenAmount < _minTokensOut) revert Lofiswap__InsufficientTokenAmount();
 
         s_ethReserve += ethIn;
@@ -155,7 +153,7 @@ contract Lofiswap is Ownable {
     function swapTokenForETH(uint256 _tokenAmount, uint256 _minETHOut) external returns (uint256 ethAmount) {
         if (_tokenAmount == 0) revert Lofiswap__MustSendTokens();
 
-        ethAmount = getOutputAmount(_tokenAmount, s_tokenReserve, s_ethReserve);
+        ethAmount = _getOutputAmount(_tokenAmount, s_tokenReserve, s_ethReserve);
         if (ethAmount < _minETHOut) revert Lofiswap__InsufficientTokenAmount();
 
         s_tokenReserve += _tokenAmount;
@@ -195,7 +193,7 @@ contract Lofiswap is Ownable {
     /// @param inputReserve The reserve amount of the input token.
     /// @param outputReserve The reserve amount of the output token.
     /// @return The calculated output amount of the output token.
-    function getOutputAmount(uint256 inputAmount, uint256 inputReserve, uint256 outputReserve)
+    function _getOutputAmount(uint256 inputAmount, uint256 inputReserve, uint256 outputReserve)
         private
         pure
         returns (uint256)

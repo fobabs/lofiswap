@@ -181,7 +181,7 @@ contract Lofiswap is Ownable {
     }
 
     function withdrawTokenFees() external onlyOwner {
-        uint256 tokenFees = i_lofiToken.balanceOf(address(this));
+        uint256 tokenFees = i_token.balanceOf(address(this));
         i_token.safeTransfer(owner(), tokenFees);
 
         emit TokenFeesWithdrawn(owner(), tokenFees);

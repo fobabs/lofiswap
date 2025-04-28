@@ -1,66 +1,120 @@
-## Foundry
+# LofiSwap
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+**LofiSwap** is a simple decentralized exchange inspired by Uniswap v1.  
+It focuses on simplicity and core automated market maker (AMM) mechanics.
 
-Foundry consists of:
+## Features
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+- Liquidity pools for token trading
+- Constant product market maker (x * y = k)
+- Basic swap functionality
+- Liquidity provisioning and removal
+- Minimalistic and gas-efficient
 
-## Documentation
+## Project Structure
 
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
+```plaintext
+.
+├── lib/                 # External libraries
+├── script/              # Deployment scripts
+├── src/                 # Smart contracts
+├── test/                # Unit tests
+├── foundry.toml         # Foundry configuration
+├── gas-report.txt       # Gas usage snapshot
+└── package.json         # Package management
 ```
 
-### Test
+## Tech Stack
 
-```shell
-$ forge test
+- **Solidity** for smart contracts
+- **Foundry** for development, testing, and deployment
+
+## Getting Started
+
+### Prerequisites
+
+- [Foundry](https://book.getfoundry.sh/) installed  
+  Install Foundry with:
+
+  ```bash
+  curl -L https://foundry.paradigm.xyz | bash
+  foundryup
+  ```
+
+- RPC Provider URL (e.g., from Alchemy or Infura)
+- Private key for deploying contracts
+
+### Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/fobabs/lofiswap.git
+cd lofiswap
 ```
 
-### Format
+Install dependencies:
 
-```shell
-$ forge fmt
+```bash
+forge install
 ```
 
-### Gas Snapshots
+### Building Contracts
 
-```shell
-$ forge snapshot
+```bash
+forge build
 ```
 
-### Anvil
+### Running Tests
 
-```shell
-$ anvil
+```bash
+forge test
 ```
 
-### Deploy
+### Gas Reporting
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+Generate gas snapshots:
+
+```bash
+forge snapshot
 ```
 
-### Cast
+Check the generated `gas-report.txt` and `gas-snapshot` for detailed gas usage.
 
-```shell
-$ cast <subcommand>
+### Deployment
+
+Deploy contracts using a script:
+
+```bash
+forge script script/Deploy.s.sol:DeployScript --rpc-url <YOUR_RPC_URL> --private-key <YOUR_PRIVATE_KEY>
 ```
 
-### Help
+Replace `<YOUR_RPC_URL>` and `<YOUR_PRIVATE_KEY>` with your actual values.
 
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
+### Local Development
+
+Run a local Ethereum node:
+
+```bash
+anvil
 ```
+
+Interact with contracts using:
+
+```bash
+cast <subcommand>
+```
+
+## Contributing
+
+Contributions are welcome.  
+Please fork the repository, create a new branch, and submit a pull request.
+
+## License
+
+This project is open-source and available under the MIT License.
+
+## Acknowledgments
+
+- Inspired by [Uniswap V1](https://github.com/runtimeverification/publications/blob/main/reports/smart-contracts/Uniswap-V1.pdf)
+- Built using [Foundry](https://book.getfoundry.sh/)

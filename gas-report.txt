@@ -1,42 +1,42 @@
 No files changed, compilation skipped
 
 Ran 12 tests for test/unit/LofiswapTest.t.sol:LofiswapTest
-[PASS] testAddInitialLiquidity() (gas: 232784)
-[PASS] testAddLiquidityInsufficientTokens() (gas: 311766)
-[PASS] testAddLiquidityMaintainRatio() (gas: 374511)
-[PASS] testAddLiquidityZeroETH() (gas: 86791)
-[PASS] testAddLiquidityZeroTokens() (gas: 40993)
-[PASS] testConstructorInvalidTokenAddress() (gas: 291083)
-[PASS] testRemoveLiquidity() (gas: 339573)
-[PASS] testRemoveLiquidityZeroAmount() (gas: 67166)
-[PASS] testSwapETHForToken() (gas: 297734)
-[PASS] testSwapTokenForETH() (gas: 340367)
-[PASS] testWithdrawETHFees() (gas: 323961)
-[PASS] testWithdrawTokenFees() (gas: 396142)
-Suite result: ok. 12 passed; 0 failed; 0 skipped; finished in 120.20ms (445.51ms CPU time)
+[PASS] testAddInitialLiquidity() (gas: 232793)
+[PASS] testAddLiquidityInsufficientTokens() (gas: 311780)
+[PASS] testAddLiquidityMaintainRatio() (gas: 374529)
+[PASS] testAddLiquidityZeroETH() (gas: 86818)
+[PASS] testAddLiquidityZeroTokens() (gas: 40974)
+[PASS] testConstructorInvalidTokenAddress() (gas: 292429)
+[PASS] testRemoveLiquidity() (gas: 339585)
+[PASS] testRemoveLiquidityZeroAmount() (gas: 67169)
+[PASS] testSwapETHForToken() (gas: 297768)
+[PASS] testSwapTokenForETH() (gas: 340402)
+[PASS] testWithdrawETHFees() (gas: 323995)
+[PASS] testWithdrawTokenFees() (gas: 396177)
+Suite result: ok. 12 passed; 0 failed; 0 skipped; finished in 96.23ms (357.03ms CPU time)
 
 ╭------------------------------------+-----------------+--------+--------+--------+---------╮
 | src/Lofiswap.sol:Lofiswap Contract |                 |        |        |        |         |
 +===========================================================================================+
 | Deployment Cost                    | Deployment Size |        |        |        |         |
 |------------------------------------+-----------------+--------+--------+--------+---------|
-| 0                                  | 11927           |        |        |        |         |
+| 0                                  | 12051           |        |        |        |         |
 |------------------------------------+-----------------+--------+--------+--------+---------|
 |                                    |                 |        |        |        |         |
 |------------------------------------+-----------------+--------+--------+--------+---------|
 | Function Name                      | Min             | Avg    | Median | Max    | # Calls |
 |------------------------------------+-----------------+--------+--------+--------+---------|
-| addLiquidity                       | 21737           | 104699 | 137272 | 137272 | 12      |
+| addLiquidity                       | 21718           | 104707 | 137281 | 137281 | 12      |
 |------------------------------------+-----------------+--------+--------+--------+---------|
 | getReserves                        | 646             | 646    | 646    | 646    | 5       |
 |------------------------------------+-----------------+--------+--------+--------+---------|
 | i_lofiToken                        | 591             | 591    | 591    | 591    | 12      |
 |------------------------------------+-----------------+--------+--------+--------+---------|
-| removeLiquidity                    | 21741           | 44365  | 44365  | 66990  | 2       |
+| removeLiquidity                    | 21744           | 44369  | 44369  | 66994  | 2       |
 |------------------------------------+-----------------+--------+--------+--------+---------|
-| swapETHForToken                    | 52516           | 52516  | 52516  | 52516  | 2       |
+| swapETHForToken                    | 52541           | 52541  | 52541  | 52541  | 2       |
 |------------------------------------+-----------------+--------+--------+--------+---------|
-| swapTokenForETH                    | 61186           | 61186  | 61186  | 61186  | 2       |
+| swapTokenForETH                    | 61212           | 61212  | 61212  | 61212  | 2       |
 |------------------------------------+-----------------+--------+--------+--------+---------|
 | withdrawETHFees                    | 32563           | 32563  | 32563  | 32563  | 1       |
 |------------------------------------+-----------------+--------+--------+--------+---------|
@@ -44,4 +44,4 @@ Suite result: ok. 12 passed; 0 failed; 0 skipped; finished in 120.20ms (445.51ms
 ╰------------------------------------+-----------------+--------+--------+--------+---------╯
 
 
-Ran 1 test suite in 128.29ms (120.20ms CPU time): 12 tests passed, 0 failed, 0 skipped (12 total tests)
+Ran 1 test suite in 104.22ms (96.23ms CPU time): 12 tests passed, 0 failed, 0 skipped (12 total tests)

@@ -59,7 +59,7 @@ contract LofiswapTest is Test {
     }
 
     function testConstructorInvalidTokenAddress() public {
-        vm.expectRevert(Lofiswap.Lofiswap__InvalidTokenAddress.selector);
+        vm.expectRevert(Lofiswap.Lofiswap__InvalidAddress.selector);
         new Lofiswap(address(0));
     }
 
@@ -77,7 +77,7 @@ contract LofiswapTest is Test {
         vm.startPrank(alice);
         // Act/Assert
         erc20Token.approve(address(lofiswap), INITIAL_TOKEN_AMOUNT);
-        vm.expectRevert(Lofiswap.Lofiswap__MustSendETH.selector);
+        vm.expectRevert(Lofiswap.Lofiswap__MustNotBeZero.selector);
         lofiswap.addLiquidity{value: 0}(INITIAL_TOKEN_AMOUNT);
         vm.stopPrank();
     }
@@ -86,7 +86,7 @@ contract LofiswapTest is Test {
         // Arrange
         vm.startPrank(alice);
         // Act/Assert
-        vm.expectRevert(Lofiswap.Lofiswap__MustSendTokens.selector);
+        vm.expectRevert(Lofiswap.Lofiswap__MustNotBeZero.selector);
         lofiswap.addLiquidity{value: INITIAL_ETH_AMOUNT}(0);
         vm.stopPrank();
     }
@@ -115,7 +115,7 @@ contract LofiswapTest is Test {
         // Act/Assert
         uint256 tokenAmount = INITIAL_TOKEN_AMOUNT / 2;
         erc20Token.approve(address(lofiswap), tokenAmount);
-        vm.expectRevert(Lofiswap.Lofiswap__InsufficientTokenAmount.selector);
+        vm.expectRevert(Lofiswap.Lofiswap__InsufficientAmount.selector);
         lofiswap.addLiquidity{value: INITIAL_ETH_AMOUNT}(tokenAmount);
         vm.stopPrank();
     }
@@ -147,7 +147,7 @@ contract LofiswapTest is Test {
         vm.startPrank(alice);
         // Act/Assert
         lofiToken.approve(address(lofiswap), 0);
-        vm.expectRevert(Lofiswap.Lofiswap__MustSendTokens.selector);
+        vm.expectRevert(Lofiswap.Lofiswap__MustNotBeZero.selector);
         lofiswap.removeLiquidity(0);
         vm.stopPrank();
     }

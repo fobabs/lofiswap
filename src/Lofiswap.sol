@@ -15,11 +15,12 @@ contract Lofiswap is Ownable {
     ////////////////////////*/
     //       Errors
     ////////////////////////*/
-    error Lofiswap__InvalidTokenAddress();
+    error Lofiswap__InvalidAddress();
+    error Lofiswap__MustNotBeZero();
     error Lofiswap__MustSendETH();
     error Lofiswap__MustSendTokens();
-    error Lofiswap__InsufficientTokenAmount();
-    error Lofiswap__ETHTransferFailed();
+    error Lofiswap__InsufficientAmount();
+    error Lofiswap__TransferFailed();
 
     ////////////////////////////////////*/
     //         State Variables
@@ -47,10 +48,20 @@ contract Lofiswap is Ownable {
     event ETHFeesWithdrawn(address indexed user, uint256 ethFees);
     event TokenFeesWithdrawn(address indexed user, uint256 tokenFees);
 
+    //////////////////////////*/
+    //       Modififers
+    //////////////////////////*/
+    modifier revertIfZero(uint256 _amount) {
+        if (_amount == 0) {
+            revert Lofiswap__MustNotBeZero();
+        }
+        _;
+    }
+
     /// @dev Initializes the Lofiswap contract
     /// @param _token Address of the token contract
     constructor(address _token) Ownable(msg.sender) {
-        if (_token == address(0)) revert Lofiswap__InvalidTokenAddress();
+        if (_token == address(0)) revert Lofiswap__InvalidAddress();
         i_token = IERC20(_token);
         i_lofiToken = new LofiToken();
     }
@@ -61,11 +72,13 @@ contract Lofiswap is Ownable {
     /// @notice Adds liquidity to the pool
     /// @param _tokenAmount Amount of tokens to add
     /// @return The amount of LofiToken tokens minted
-    function addLiquidity(uint256 _tokenAmount) external payable returns (uint256) {
-        // Check if the user has enough ETH
-        if (msg.value == 0) revert Lofiswap__MustSendETH();
-        if (_tokenAmount <= 0) revert Lofiswap__MustSendTokens();
-
+    function addLiquidity(uint256 _tokenAmount)
+        external
+        payable
+        revertIfZero(_tokenAmount)
+        revertIfZero(msg.value)
+        returns (uint256)
+    {
         uint256 ethAmount = msg.value;
         uint256 lofiAmount;
 
@@ -75,7 +88,7 @@ contract Lofiswap is Ownable {
         } else {
             // Maintain ratio
             uint256 tokenAmountRequired = (ethAmount * s_tokenReserve) / s_ethReserve;
-            if (_tokenAmount < tokenAmountRequired) revert Lofiswap__InsufficientTokenAmount();
+            if (_tokenAmount < tokenAmountRequired) revert Lofiswap__InsufficientAmount();
 
             uint256 totalSupply = i_lofiToken.totalSupply();
             lofiAmount = (ethAmount * totalSupply) / s_ethReserve;
@@ -101,9 +114,12 @@ contract Lofiswap is Ownable {
     /// @param _lofiAmount Amount of LofiToken tokens to remove
     /// @return ethAmount
     /// @return tokenAmount
-    function removeLiquidity(uint256 _lofiAmount) external returns (uint256 ethAmount, uint256 tokenAmount) {
-        if (_lofiAmount == 0) revert Lofiswap__MustSendTokens();
-        if (_lofiAmount > i_lofiToken.balanceOf(msg.sender)) revert Lofiswap__InsufficientTokenAmount();
+    function removeLiquidity(uint256 _lofiAmount)
+        external
+        revertIfZero(_lofiAmount)
+        returns (uint256 ethAmount, uint256 tokenAmount)
+    {
+        if (_lofiAmount > i_lofiToken.balanceOf(msg.sender)) revert Lofiswap__InsufficientAmount();
 
         uint256 totalSupply = i_lofiToken.totalSupply();
         ethAmount = (_lofiAmount * s_ethReserve) / totalSupply;
@@ -119,7 +135,7 @@ contract Lofiswap is Ownable {
         i_token.safeTransfer(msg.sender, tokenAmount);
 
         (bool sent,) = payable(msg.sender).call{value: ethAmount}("");
-        if (!sent) revert Lofiswap__ETHTransferFailed();
+        if (!sent) revert Lofiswap__TransferFailed();
 
         emit LiquidityRemoved(msg.sender, ethAmount, tokenAmount);
         return (ethAmount, tokenAmount);
@@ -128,13 +144,18 @@ contract Lofiswap is Ownable {
     /// @notice Swaps ETH for LofiToken
     /// @param _minTokensOut Minimum amount of tokens to receive
     /// @return tokenAmount
-    function swapETHForToken(uint256 _minTokensOut) external payable returns (uint256 tokenAmount) {
+    function swapETHForToken(uint256 _minTokensOut)
+        external
+        payable
+        revertIfZero(msg.value)
+        returns (uint256 tokenAmount)
+    {
         if (msg.value == 0) revert Lofiswap__MustSendETH();
 
         uint256 ethIn = msg.value;
 
         tokenAmount = _getOutputAmount(ethIn, s_ethReserve, s_tokenReserve);
-        if (tokenAmount < _minTokensOut) revert Lofiswap__InsufficientTokenAmount();
+        if (tokenAmount < _minTokensOut) revert Lofiswap__InsufficientAmount();
 
         s_ethReserve += ethIn;
         s_tokenReserve -= tokenAmount;
@@ -150,11 +171,15 @@ contract Lofiswap is Ownable {
     /// @param _tokenAmount Amount of tokens to swap
     /// @param _minETHOut Minimum amount of ETH to receive
     /// @return ethAmount
-    function swapTokenForETH(uint256 _tokenAmount, uint256 _minETHOut) external returns (uint256 ethAmount) {
+    function swapTokenForETH(uint256 _tokenAmount, uint256 _minETHOut)
+        external
+        revertIfZero(_tokenAmount)
+        returns (uint256 ethAmount)
+    {
         if (_tokenAmount == 0) revert Lofiswap__MustSendTokens();
 
         ethAmount = _getOutputAmount(_tokenAmount, s_tokenReserve, s_ethReserve);
-        if (ethAmount < _minETHOut) revert Lofiswap__InsufficientTokenAmount();
+        if (ethAmount < _minETHOut) revert Lofiswap__InsufficientAmount();
 
         s_tokenReserve += _tokenAmount;
         s_ethReserve -= ethAmount;
@@ -164,7 +189,7 @@ contract Lofiswap is Ownable {
 
         // Send ETH to the caller
         (bool sent,) = payable(msg.sender).call{value: ethAmount}("");
-        if (!sent) revert Lofiswap__ETHTransferFailed();
+        if (!sent) revert Lofiswap__TransferFailed();
 
         emit SwapTokenForETH(msg.sender, _tokenAmount, ethAmount);
         return ethAmount;
@@ -173,7 +198,7 @@ contract Lofiswap is Ownable {
     function withdrawETHFees() external onlyOwner {
         uint256 ethFees = address(this).balance;
         (bool sent,) = payable(owner()).call{value: ethFees}("");
-        if (!sent) revert Lofiswap__ETHTransferFailed();
+        if (!sent) revert Lofiswap__TransferFailed();
 
         emit ETHFeesWithdrawn(owner(), ethFees);
     }
